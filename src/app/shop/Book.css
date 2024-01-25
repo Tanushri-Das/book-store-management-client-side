@@ -27,11 +27,11 @@
 }
 @media (max-width: 500px) {
   .product {
-    height: 580px;
+    height: 600px;
   }
 }
 @media (min-width: 700px) and (max-width: 870px) {
   .product {
-    height: 550px;
+    height: 600px;
   }
 }

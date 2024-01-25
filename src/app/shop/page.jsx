@@ -1,15 +1,9 @@
-// Shop.js
 "use client";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  selectSearch,
-  setSearchTerm,
-  setCategory,
-  setPriceFilter,
-} from "../redux/searchSlice";
+import { FaArrowLeft, FaArrowRight, FaMinus } from "react-icons/fa";
 import Book from "./Book";
-import { FaMinus } from "react-icons/fa";
+import { setSearchTerm, setCategory, selectSearch } from "../redux/searchSlice";
 
 const Shop = () => {
   const dispatch = useDispatch();
@@ -17,6 +11,8 @@ const Shop = () => {
   const [books, setBooks] = useState([]);
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   useEffect(() => {
     fetch("bookdata.json")
@@ -24,6 +20,31 @@ const Shop = () => {
       .then((data) => setBooks(data));
   }, []);
 
+  const filteredBooks = books.filter((book) => {
+    const isMatchingCategory = category === "All" || book.category === category;
+    const isMatchingPrice =
+      (minPrice === 0 || book.price >= minPrice) &&
+      (maxPrice === 0 || book.price <= maxPrice);
+
+    return (
+      book.book_name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      isMatchingCategory &&
+      isMatchingPrice
+    );
+  });
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentBooks = filteredBooks.slice(indexOfFirstItem, indexOfLastItem);
+
+  const isPrevDisabled = currentPage === 1;
+  const isNextDisabled = indexOfLastItem >= filteredBooks.length;
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= Math.ceil(filteredBooks.length / itemsPerPage)) {
+      setCurrentPage(page);
+    }
+  };
   const handleSearch = (e) => {
     dispatch(setSearchTerm(e.target.value));
   };
@@ -43,15 +64,51 @@ const Shop = () => {
   };
 
   const handlePriceFilterApply = () => {
-    dispatch(setPriceFilter({ min: minPrice, max: maxPrice }));
+    // Apply the price filter only when both min and max prices are provided
+    if (minPrice > 0 && maxPrice > 0) {
+      const updatedFilteredBooks = books.filter((book) => {
+        const isMatchingCategory =
+          category === "All" || book.category === category;
+        const isMatchingPrice =
+          (minPrice === 0 || book.price >= minPrice) &&
+          (maxPrice === 0 || book.price <= maxPrice);
+
+        return (
+          book.book_name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+          isMatchingCategory &&
+          isMatchingPrice
+        );
+      });
+
+      // Update the books state when Apply button is clicked
+      setBooks(updatedFilteredBooks);
+    } else {
+      // Handle the case where both values are not provided
+      // You can show a message or take appropriate action
+      console.log("Please provide both minimum and maximum prices");
+    }
+
+    // Reset the input values
     setMinPrice(0);
     setMaxPrice(0);
   };
 
+  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth <= 667);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSmallScreen(window.innerWidth <= 667);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
   return (
-    <div className="mx-12">
-      <div className="flex">
-        <div className="flex flex-col p-2 sm:p-4 md:py-8 md:px-8 border-2 border-red-600">
+    <div className="mx-2 md:mx-4 lg:mx-12 py-12">
+      <div className="flex flex-col lg:flex-row">
+        <div className="flex flex-col p-2 sm:p-4 md:py-8 md:px-8">
           <div className="flex flex-col items-start">
             <h2 className="text-[16px] sm:text-xl font-bold mb-3">Category</h2>
             <div className="flex justify-center items-center mb-2">
@@ -105,7 +162,7 @@ const Shop = () => {
                 placeholder="min"
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
-                className="w-20 h-10 border-2 border-red-400 ps-1 focus:outline-none"
+                className="w-14 sm:w-20 h-10 border-2 border-gray-200 ps-1 focus:outline-none"
               />
               <FaMinus className="mx-2" />
               <input
@@ -114,7 +171,7 @@ const Shop = () => {
                 placeholder="max"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
-                className="w-20 h-10 border-2 border-red-400 me-2 ps-1 focus:outline-none"
+                className="w-14 sm:w-20 h-10 border-2 border-gray-200 me-2 ps-1 focus:outline-none"
               />
               <button
                 onClick={handlePriceFilterApply}
@@ -125,7 +182,8 @@ const Shop = () => {
             </div>
           </div>
         </div>
-        <div className="flex-1 px-2 py-12 border-2 border-red-600">
+
+        <div className="flex-1 px-2">
           <h2 className="text-xl sm:text-3xl font-bold text-center mb-5">
             All Books
           </h2>
@@ -164,10 +222,99 @@ const Shop = () => {
               )}
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 md:mx-3">
-            {books?.map((book) => (
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4 md:mx-3">
+            {currentBooks?.map((book) => (
               <Book key={book.id} book={book} />
             ))}
+          </div>
+          <div className="flex justify-center mt-4">
+            {isSmallScreen ? (
+              <>
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  className={`pagination-btn ${
+                    isPrevDisabled ? "cursor-not-allowed" : ""
+                  } px-4 py-2 rounded-l-md text-[16px] font-semibold ${
+                    isPrevDisabled ? "text-gray-400" : "text-gray-900"
+                  } flex items-center`}
+                  disabled={isPrevDisabled}
+                >
+                  <FaArrowLeft className="mr-1" /> Prev
+                </button>
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className={`pagination-btn text-[16px] font-semibold ${
+                    isNextDisabled ? "cursor-not-allowed" : ""
+                  } px-4 py-2 ${
+                    currentPage ===
+                    Math.ceil(filteredBooks.length / itemsPerPage)
+                      ? "rounded-r-md"
+                      : ""
+                  } ${
+                    isNextDisabled ? "text-gray-400" : "text-gray-900"
+                  } flex items-center`}
+                  disabled={isNextDisabled}
+                >
+                  Next <FaArrowRight className="ml-1" />
+                </button>
+              </>
+            ) : (
+              <div className="flex">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  className={`pagination-btn ${
+                    isPrevDisabled ? "cursor-not-allowed" : ""
+                  } px-4 py-2 rounded-l-md text-[16px] font-semibold ${
+                    isPrevDisabled ? "text-gray-400" : "text-gray-900"
+                  } flex items-center`}
+                  disabled={isPrevDisabled}
+                >
+                  <FaArrowLeft className="mr-1" /> Prev
+                </button>
+                {Array.from(
+                  { length: Math.ceil(filteredBooks.length / itemsPerPage) },
+                  (_, index) => (
+                    <button
+                      key={index + 1}
+                      onClick={() => handlePageChange(index + 1)}
+                      className={`pagination-btn text-[16px] font-semibold ${
+                        currentPage === index + 1
+                          ? "bg-blue-500 text-white rounded-lg"
+                          : "bg-white text-blue-500"
+                      } px-4 py-2 ${index === 0 ? "rounded-l-md" : ""} ${
+                        index ===
+                        Math.ceil(filteredBooks.length / itemsPerPage) - 1
+                          ? "rounded-r-md"
+                          : ""
+                      } ${
+                        currentPage === index + 1
+                          ? "text-white"
+                          : "text-blue-500"
+                      }`}
+                    >
+                      {index + 1}
+                    </button>
+                  )
+                )}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className={`pagination-btn text-[16px] font-semibold ${
+                    isNextDisabled ? "cursor-not-allowed" : ""
+                  } px-4 py-2 ${
+                    currentPage ===
+                    Math.ceil(filteredBooks.length / itemsPerPage)
+                      ? "rounded-r-md"
+                      : ""
+                  } ${
+                    isNextDisabled ? "text-gray-400" : "text-gray-900"
+                  } flex items-center`}
+                  disabled={isNextDisabled}
+                >
+                  Next <FaArrowRight className="ml-1" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

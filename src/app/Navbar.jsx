@@ -41,6 +41,12 @@ const Navbar = () => {
               >
                 Shop
               </Link>
+              <Link
+                href="/login"
+                className="text-white hover:bg-white hover:text-black rounded-lg py-2 px-3"
+              >
+               Login
+              </Link>
             </div>
           </div>
           <div className="md:hidden flex items-center">

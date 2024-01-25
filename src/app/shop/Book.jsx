@@ -14,6 +14,7 @@ const Book = ({ book }) => {
     (category === "All" || book.category === category) &&
     (minPrice === 0 || book.price >= minPrice) &&
     (maxPrice === 0 || book.price <= maxPrice);
+    
 
   if (!isBookVisible) {
     // If the book should not be visible, return null
