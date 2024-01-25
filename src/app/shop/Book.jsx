@@ -3,19 +3,23 @@ import { useSelector } from "react-redux";
 import "./Book.css";
 
 const Book = ({ book }) => {
-  const { searchTerm, category } = useSelector((state) => state.search);
+  const { searchTerm, category, priceFilter } = useSelector(
+    (state) => state.search
+  );
+  const { min: minPrice, max: maxPrice } = priceFilter;
 
-  // Check if the book's name includes the search term
+  // Check if the book satisfies visibility criteria
   const isBookVisible =
     book.book_name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    (category === "All" || book.category === category);
+    (category === "All" || book.category === category) &&
+    (minPrice === 0 || book.price >= minPrice) &&
+    (maxPrice === 0 || book.price <= maxPrice);
 
   if (!isBookVisible) {
     // If the book should not be visible, return null
     return null;
   }
 
-  // The rest of your Book component remains the same
   return (
     <div key={book.id} className="product">
       <img src={book.image} alt={book.book_name} className="product-img" />

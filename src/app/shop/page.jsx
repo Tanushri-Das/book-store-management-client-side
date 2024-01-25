@@ -1,14 +1,22 @@
+// Shop.js
 "use client";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { selectSearch, setSearchTerm, setCategory } from "../redux/searchSlice";
+import {
+  selectSearch,
+  setSearchTerm,
+  setCategory,
+  setPriceFilter,
+} from "../redux/searchSlice";
 import Book from "./Book";
+import { FaMinus } from "react-icons/fa";
 
 const Shop = () => {
   const dispatch = useDispatch();
-  const { searchTerm, priceFilter, category } = useSelector(selectSearch);
-
+  const { searchTerm, category } = useSelector(selectSearch);
   const [books, setBooks] = useState([]);
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(0);
 
   useEffect(() => {
     fetch("bookdata.json")
@@ -32,6 +40,12 @@ const Shop = () => {
       // If "All" is clicked, clear the category
       dispatch(setCategory(""));
     }
+  };
+
+  const handlePriceFilterApply = () => {
+    dispatch(setPriceFilter({ min: minPrice, max: maxPrice }));
+    setMinPrice(0);
+    setMaxPrice(0);
   };
 
   return (
@@ -81,6 +95,34 @@ const Shop = () => {
                 </label>
               </div>
             ))}
+          </div>
+          <div className="flex flex-col items-start mt-5">
+            <h2 className="text-[16px] sm:text-xl font-bold mb-3">Price</h2>
+            <div className="flex justify-center items-center mb-2">
+              <input
+                type="number"
+                name="minPrice"
+                placeholder="min"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                className="w-20 h-10 border-2 border-red-400 ps-1 focus:outline-none"
+              />
+              <FaMinus className="mx-2" />
+              <input
+                type="number"
+                name="maxPrice"
+                placeholder="max"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                className="w-20 h-10 border-2 border-red-400 me-2 ps-1 focus:outline-none"
+              />
+              <button
+                onClick={handlePriceFilterApply}
+                className="add-to-cart bg-orange-500 text-white px-4 py-3 font-semibold rounded-lg text-sm sm:text-[16px]"
+              >
+                Apply
+              </button>
+            </div>
           </div>
         </div>
         <div className="flex-1 px-2 py-12 border-2 border-red-600">
