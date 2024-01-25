@@ -1,4 +1,3 @@
-// redux/searchSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
 const searchSlice = createSlice({
@@ -6,6 +5,7 @@ const searchSlice = createSlice({
   initialState: {
     searchTerm: "",
     priceFilter: { min: 0, max: 0 },
+    category: "All", // Default to "All" category
   },
   reducers: {
     setSearchTerm: (state, action) => {
@@ -14,10 +14,14 @@ const searchSlice = createSlice({
     setPriceFilter: (state, action) => {
       state.priceFilter = action.payload;
     },
+    setCategory: (state, action) => {
+      state.category = action.payload;
+    },
   },
 });
 
-export const { setSearchTerm, setPriceFilter } = searchSlice.actions;
+export const { setSearchTerm, setPriceFilter, setCategory } =
+  searchSlice.actions;
 export const selectSearch = (state) => state.search;
 
 export default searchSlice.reducer;

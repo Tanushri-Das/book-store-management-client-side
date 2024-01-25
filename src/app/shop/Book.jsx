@@ -3,12 +3,12 @@ import { useSelector } from "react-redux";
 import "./Book.css";
 
 const Book = ({ book }) => {
-  const searchTerm = useSelector((state) => state.search.searchTerm);
+  const { searchTerm, category } = useSelector((state) => state.search);
 
   // Check if the book's name includes the search term
-  const isBookVisible = book.book_name
-    .toLowerCase()
-    .includes(searchTerm.toLowerCase());
+  const isBookVisible =
+    book.book_name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    (category === "All" || book.category === category);
 
   if (!isBookVisible) {
     // If the book should not be visible, return null
@@ -21,7 +21,7 @@ const Book = ({ book }) => {
       <img src={book.image} alt={book.book_name} className="product-img" />
       <div className="mt-5 px-4">
         <p className="text-[16px] sm:text-xl mb-3 text-center font-semibold">
-          Bookname :{book.book_name}
+          Bookname : {book.book_name}
         </p>
         <p className="text-[16px] sm:text-xl mb-3 text-center font-semibold">
           Writername : {book.writer_name}
