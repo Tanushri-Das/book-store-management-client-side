@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { FaArrowLeft, FaArrowRight, FaMinus } from "react-icons/fa";
 import Book from "./Book";
 import { setSearchTerm, setCategory, selectSearch } from "../redux/searchSlice";
+import withAuth from "@/auth";
 
 const Shop = () => {
   const dispatch = useDispatch();
@@ -15,7 +16,7 @@ const Shop = () => {
   const itemsPerPage = 6;
 
   useEffect(() => {
-    fetch("bookdata.json")
+    fetch("http://localhost:5000/books")
       .then((res) => res.json())
       .then((data) => setBooks(data));
   }, []);
@@ -322,4 +323,4 @@ const Shop = () => {
   );
 };
 
-export default Shop;
+export default withAuth(Shop);

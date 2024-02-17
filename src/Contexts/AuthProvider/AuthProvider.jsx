@@ -1,5 +1,5 @@
+"use client";
 import React, { createContext, useEffect, useState } from "react";
-
 import {
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
@@ -10,7 +10,6 @@ import {
   signOut,
   updateProfile,
 } from "firebase/auth";
-import axios from "axios";
 import app from "@/firebase/firebase.config";
 
 export const AuthContext = createContext(null);
@@ -35,7 +34,7 @@ const AuthProvider = ({ children }) => {
   };
   const updateUserProfile = (name) => {
     return updateProfile(auth.currentUser, {
-      displayName: name
+      displayName: name,
     });
   };
 
@@ -46,18 +45,7 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      // get and set token
-      if (currentUser) {
-        axios
-          .post("https://coffee-shop-website-server-side.vercel.app/jwt", { email: currentUser?.email })
-          .then((data) => {
-            console.log(data.data.token);
-            localStorage.setItem("access-token", data.data.token);
-            setLoading(false);
-          });
-      } else {
-        localStorage.removeItem("access-token");
-      }
+      setLoading(false);
     });
     return () => {
       return unsubscribe();
